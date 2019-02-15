@@ -4,9 +4,12 @@
 
 const express = require('express');
 const bodyParser = require('body-parser');
+const bcrypt = require('bcrypt-nodejs');
+const cors = require('cors');
 
 const app = express();
 app.use(bodyParser.json());
+app.use(cors()); //Middleware used to connect fronend and backend
 
 const database = {
     users: [
@@ -26,15 +29,23 @@ const database = {
             entries: 0,
             joined: new Date()
         }
+    ],
+    login: [
+        {
+            id: '987',
+            hash: '',
+            email: 'john@gmail.com'
+        }
     ]
-}
+};
 
 app.get('/', (req,res) => {
     res.send(database.users);
 });
 
 app.post('/signin', (req,res) => {
-    if(req.body.email === databse.users[0].email && req.body.password === database.users[0].password) {
+    console.log("res", req.body);
+    if(req.body.email === database.users[0].email && req.body.password === database.users[0].password) {
         res.json('Success');
     } else {
         res.json('Fail');
@@ -53,6 +64,21 @@ app.post('/register', (req,res) => {
         joined: new Date()
     });
     res.json(database.users[database.users.length-1]);
+});
+
+app.post('/image', (req,res) => {
+   const {id} = req.body;
+   let found = false;
+    database.users.forEach(user => {
+        if(user.id === id) {
+            found = true;
+            user.entries++;
+            return res.json(user.entries);
+        }
+    if(!found) {
+        res.status(400).json('not found');
+    }
+    });
 });
 
 app.get('/profile/:id', (req,res) => {
